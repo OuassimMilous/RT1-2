@@ -46,6 +46,8 @@ Usage
 Run the node_A.py script to control the robot:
 
 ```rosrun robot_control node_A.py```
+
+
 Access the last set target coordinates:
 ```rosservice call /get_last_target```
 
