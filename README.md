@@ -43,10 +43,9 @@ Implements a service server to calculate the distance and average speed to the l
 Subscribes to the /last_target and /posvelo topics for robot and target information.
 
 Usage
+
 Run the node_A.py script to control the robot:
-
 ```rosrun robot_control node_A.py```
-
 
 Access the last set target coordinates:
 ```rosservice call /get_last_target```
