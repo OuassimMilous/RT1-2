@@ -15,7 +15,7 @@
   <arg name="debug" default="false"/>
   <arg name="physics" default="ode"/>
   <arg name="verbose" default="false"/>
-  <arg name="world_name" value="$(find assignment_2_2023)/world/$(arg world).world"/>
+  <arg name="world_name" value="$(find ouass)/world/$(arg world).world"/>
   <arg name="respawn_gazebo" default="false"/>
   <arg name="use_clock_frequency" default="false"/>
   <arg name="pub_clock_frequency" default="100"/>
@@ -48,7 +48,7 @@
 	
 
   <!-- these are the arguments you can pass this launch file, for example paused:=true -->
-  <arg name="model" default="$(find assignment_2_2023)/urdf/robot2_laser.xacro" />
+  <arg name="model" default="$(find ouass)/urdf/robot2_laser.xacro" />
 
   <!-- Load the URDF into the ROS Parameter Server -->
   <param name="robot_description" 
@@ -58,8 +58,8 @@
   <param name="use_gui" value="False"/>
    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" ></node>
    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" /> 
-   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find assignment_2_2023)/config/sim2.rviz" />
-
+   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find ouass)/config/sim2.rviz" />
+ouass
   <!-- Run a python script to the send a service call to gazebo_ros to spawn a URDF robot -->
    <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
 	args="-urdf -model robot1 -param robot_description -y 1.0 -z 0.05"/> 
