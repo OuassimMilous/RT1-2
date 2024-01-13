@@ -168,9 +168,14 @@ include_directories(
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
 catkin_install_python(PROGRAMS
+
+  scripts/bug_as.py
+  scripts/wall_follow_service.py
+  scripts/go_to_point_service.py
   scripts/nodeA.py
   scripts/nodeB.py
   scripts/nodeC.py
+
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
