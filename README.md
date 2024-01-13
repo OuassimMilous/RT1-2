@@ -152,80 +152,51 @@ if __name__ == '__main__':
 nodeC.py
 ```
 # Import necessary libraries
-import rospy
-from math import hypot
-from ouass.msg import Data
-from ouass.msg import RobotTarget
-from ouass.srv import TargetDistance, TargetDistanceResponse
 
 # Define the DistanceToTargetServer class
 class DistanceToTargetServer:
     # Constructor
     def __init__(self, name: str) -> None:
-        # Initialize the ROS node
-        rospy.init_node(name, anonymous=False)  
-
-        # Initialize variables
-        self.robot_speed_list = []                                                     
-        self.av_speed_window_limit = rospy.get_param('av_window_size', default=10)      
-        self.robot_current = Data()                                               
-        self.target_position = RobotTarget()                                            
-        self.is_target_set = False      
-
-        # Subscribe to topics for target and robot state
-        rospy.Subscriber("/last_target", RobotTarget, self.robot_target_callback)     
-        rospy.Subscriber("/posvelo", Data, self.robot_state_callback)
-
-        # Create a service named 'get_target_distance' with the TargetDistance service type
-        self.service = rospy.Service("get_target_distance", TargetDistance, self.handle_get_target_distance)
+        initialize the ROS node with the given name, not anonymous
+        initialize variables for robot speed, average speed window limit, current robot state, target position, and target set flag
+        create subscribers for "/last_target" and "/posvelo" topics with respective callback functions
+        create a service "get_target_distance" with TargetDistanceRequest and TargetDistanceResponse types
+        set the service callback function to handle_get_target_distance
 
     # Callback function for handling RobotTarget messages
     def robot_target_callback(self, data):
-        self.target_position.target_x = data.target_x
-        self.target_position.target_y = data.target_y
-        if not self.is_target_set:
-            self.is_target_set = True
+        update target_position based on the received RobotTarget message
+        set is_target_set flag to True if it's not already set
 
     # Callback function for handling Data messages
     def robot_state_callback(self, data):
-        self.robot_current.position_x = data.position_x
-        self.robot_current.position_y = data.position_y
-        if len(self.robot_speed_list) < self.av_speed_window_limit:
-            self.robot_speed_list.append((data.vel_x, data.vel_y))
-        elif len(self.robot_speed_list) == self.av_speed_window_limit:
-            self.robot_speed_list.pop(0)
-            self.robot_speed_list.append((data.vel_x, data.vel_y))
+        update robot_current based on the received Data message
+        manage the robot_speed_list to keep a window of average speeds
 
     # Service handler function
     def handle_get_target_distance(self, req):
-        response = TargetDistanceResponse()
+        create a response variable of type TargetDistanceResponse
 
-        if self.is_target_set:
-            response.dist_x = self.target_position.target_x - self.robot_current.position_x
-            response.dist_y = self.target_position.target_y - self.robot_current.position_y
-            response.dist = hypot((self.target_position.target_x - self.robot_current.position_x),
-                                  (self.target_position.target_y - self.robot_current.position_y))
-            rospy.loginfo("target_x = %d target_y %d", self.target_position.target_x, self.target_position.target_y)
+        if is_target_set:
+            calculate distances and total distance using the hypot function
+            log information about target_x and target_y
         else:
-            response.dist_x = 0.0
-            response.dist_y = 0.0
+            set distances to zero
 
-        response.av_speed_x = sum(x[0] for x in self.robot_speed_list) / len(self.robot_speed_list)
-        response.av_speed_y = sum(y[1] for y in self.robot_speed_list) / len(self.robot_speed_list)
+        calculate average speeds for x and y directions
 
-        return response
+        return the response
 
 # Main function
 def main():
-    last_target_server_node = DistanceToTargetServer('get_target_distance')
-    rospy.spin()
+    instantiate an object of the DistanceToTargetServer class with the name 'get_target_distance'
+    spin the ROS node
 
 # Entry point
 if __name__ == "__main__":
     try:
-        main()
+        call the main() function
     except rospy.ROSInterruptException:
         pass
-
 
 ```
