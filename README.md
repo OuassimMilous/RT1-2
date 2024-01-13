@@ -107,52 +107,44 @@ if __name__ == '__main__':
 nodeB.py:
 
 ```
-
-
 # Import necessary libraries and modules
-import rospy
-from actionlib import SimpleActionClient
-from custom_msgs.msg import CustomMessage
-from geometry_msgs.msg import Point
-from std_msgs.msg import String
 
-# Define a function to cancel the target
-function cancel():
-    cancel the goal in the action client
-    log information that the goal has been canceled
+# Define a class LastTargetServiceNode
+class LastTargetServiceNode:
+    # Constructor
+    def __init__(self):
+        initialize the ROS node with the name 'last_target_service_node'
+        set self.last_target to None
+        create a subscriber for the "/last_target" topic with the robot_target_callback function
+        create a ROS service 'get_last_target' with LastTargetRequest and LastTargetResponse types
+        set the service callback function to handle_get_last_target
+        log information "Service LastTarget is ready"
 
-# Define a function to change the robot target
-function change_target():
-    get user input for x and y coordinates
-    create and publish a message for the last target
-    wait for the action server to be available
-    initialize a goal with the given x and y coordinates
-    send the goal to the action server
+    # Service callback function
+    def handle_get_last_target(self, request):
+        create a response variable of type LastTargetResponse
+        if self.last_target is not None:
+            set response.target_x to self.last_target[0]
+            set response.target_y to self.last_target[1]
+            log information "Received Robot Target:"
+            log information f"  Target X: {response.target_x}"
+            log information f"  Target Y: {response.target_y}"
+        else:
+            log warning "No target found"
+        return response
 
-# Define a callback function for the subscriber
-function subscriber_callback(data):
-    create a custom message
-    extract current positions and velocities from the received data
-    create a publisher for the "/posvelo" topic
-    publish the custom message
+    # Callback function
+    def robot_target_callback(self, data):
+        set self.last_target to (data.target_x, data.target_y)
 
-# Define the main function
-function main():
-    continuously loop:
-        get user input
-        if input is "1":
-            call change_target() function
-        elif input is "2":
-            call cancel() function
-
-# Initialize the ROS node
+# Main block
 if __name__ == '__main__':
-    initialize the ROS node with the name 'node_A'
-    initialize the action client for reaching_goal
-    create a subscriber for the "/odom" topic with the subscriber_callback function
-    call the main() function
-    spin the ROS node
+    try:
+        instantiate an object of the LastTargetServiceNode class
+        spin the ROS node
 
+    except rospy.ROSInterruptException:
+        pass
 
 
 ```
