@@ -21,10 +21,11 @@ def change_target():
     y = float(input("Enter the y coordinates: "))    
     print(f'The new target coordinates: \n x: {x} \n y: {y}')    
     # Publishing the last target for reference
-    pub2 = rospy.Publisher('last_target', RobotTarget, queue_size=10)
+
     last_target_msg = RobotTarget()
     last_target_msg.target_x = x
     last_target_msg.target_y = y
+    pub2 = rospy.Publisher('last_target', RobotTarget, queue_size=10)
     pub2.publish(last_target_msg)
     
     # Wait for the action server
@@ -50,6 +51,7 @@ def subscriber_callback(data):
 
     # Declaring the publisher and the topic
     pub = rospy.Publisher("/posvelo", Data, queue_size=10)
+    pub2 = rospy.Publisher('last_target', RobotTarget, queue_size=10)
     # Publishing the message
     pub.publish(msg)
 
