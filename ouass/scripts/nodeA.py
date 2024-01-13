@@ -3,8 +3,9 @@ from __future__ import print_function
 import sys    
 import rospy
 import actionlib
-from assignment_2_2023.msg import PlanningAction, PlanningGoal
+from ouass.msg import PlanningAction, PlanningGoal
 from ouass.msg import Data
+from ouass.msg import RobotTarget
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import PoseStamped
 
@@ -19,6 +20,11 @@ def change_target():
     x = float(input("Enter the x coordinates: "))
     y = float(input("Enter the y coordinates: "))    
     print(f'the new target coordinates: \n x: {x} \n y: {y}')    
+    pub2 = rospy.Publisher('last_target', RobotTarget, queue_size=10)
+    last_target_msg = RobotTarget()
+    last_target_msg.target_x = x
+    last_target_msg.target_y = y
+    pub2.publish(last_target_msg)
     # wait for the server
     client.wait_for_server()  
     # initializing the goal  
@@ -31,6 +37,10 @@ def change_target():
     client.send_goal(goal)
     
     
+    
+    
+    
+
 # a function for the subscriber callback
 def subscriber_callback(data):
     # declaring the custom message
@@ -42,19 +52,18 @@ def subscriber_callback(data):
     msg.position_y = data.pose.pose.position.y 
 
     # declaring the publisher and the topic
-    pub = rospy.Publisher("posvelo", Data, queue_size=10)
+    pub = rospy.Publisher("/posvelo", Data, queue_size=10)
     # publishing the msg
     pub.publish(msg)
 
-
 def main():
     while True:
-		# getting input
-        user_input= input("user input:  ")
-		# execute the relivent function
-        if (user_input == "1"):
+        # getting input
+        user_input = input("user input:  ")
+        # execute the relevant function
+        if user_input == "1":
             change_target()
-        elif (user_input == "2"):
+        elif user_input == "2":
             cancel()
 
 

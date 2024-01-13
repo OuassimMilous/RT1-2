@@ -1,6 +1,11 @@
 <?xml version="1.0"?>
 <launch>
-    <include file="$(find assignment_2_2023)/launch/sim_w1.launch" />
+	
+
+    <arg name="av_window_size" default="10" />
+    <param name="av_window_size" type="int" value="$(arg av_window_size)"/>
+
+    <include file="$(find ouass)/launch/sim_w1.launch" />
     <param name="des_pos_x" value= "0.0" />
     <param name="des_pos_y" value= "1.0" />
     <node pkg="ouass" type="wall_follow_service.py" name="wall_follower" />
@@ -8,5 +13,6 @@
     <node pkg="ouass" type="bug_as.py" name="bug_action_service" />
     <node pkg="ouass" type="nodeA.py" name="nodeA" output="screen"  />
     <node pkg="ouass" type="nodeB.py" name="nodeB" output="screen"  />
+    <node pkg="ouass" type="nodeC.py" name="nodeC" output="screen"  />
 
 </launch>
