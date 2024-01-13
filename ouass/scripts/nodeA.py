@@ -59,7 +59,7 @@ def subscriber_callback(data):
 def main():
     while True:
         # Getting user input
-        user_input = input("user input:  ")
+        user_input = input("please enter 1 to change the target or 2 to cancel the current one:  ")
         # Execute the relevant function based on user input
         if user_input == "1":
             change_target()
