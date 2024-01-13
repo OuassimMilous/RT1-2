@@ -58,6 +58,11 @@ Access the distance of the target from the robot as well as the average velocity
 nodeA.py:
 ```
 # Import necessary libraries and modules
+import rospy
+from actionlib import SimpleActionClient
+from custom_msgs.msg import CustomMessage
+from geometry_msgs.msg import Point
+from std_msgs.msg import String
 
 # Define a function to cancel the target
 function cancel():
@@ -95,10 +100,15 @@ if __name__ == '__main__':
     create a subscriber for the "/odom" topic with the subscriber_callback function
     call the main() function
     spin the ROS node
+
+
+
 ```
 nodeB.py:
 
 ```
+
+
 # Import necessary libraries and modules
 import rospy
 from actionlib import SimpleActionClient
@@ -142,52 +152,88 @@ if __name__ == '__main__':
     create a subscriber for the "/odom" topic with the subscriber_callback function
     call the main() function
     spin the ROS node
+
+
+
 ```
 
 nodeC.py
 ```
-# Import necessary libraries and modules
+# Import necessary libraries
 import rospy
-from actionlib import SimpleActionClient
-from custom_msgs.msg import CustomMessage
-from geometry_msgs.msg import Point
-from std_msgs.msg import String
+from math import hypot
+from ouass.msg import Data
+from ouass.msg import RobotTarget
+from ouass.srv import TargetDistance, TargetDistanceResponse
 
-# Define a function to cancel the target
-function cancel():
-    cancel the goal in the action client
-    log information that the goal has been canceled
+# Define the DistanceToTargetServer class
+class DistanceToTargetServer:
+    # Constructor
+    def __init__(self, name: str) -> None:
+        # Initialize the ROS node
+        rospy.init_node(name, anonymous=False)  
 
-# Define a function to change the robot target
-function change_target():
-    get user input for x and y coordinates
-    create and publish a message for the last target
-    wait for the action server to be available
-    initialize a goal with the given x and y coordinates
-    send the goal to the action server
+        # Initialize variables
+        self.robot_speed_list = []                                                     
+        self.av_speed_window_limit = rospy.get_param('av_window_size', default=10)      
+        self.robot_current = Data()                                               
+        self.target_position = RobotTarget()                                            
+        self.is_target_set = False      
 
-# Define a callback function for the subscriber
-function subscriber_callback(data):
-    create a custom message
-    extract current positions and velocities from the received data
-    create a publisher for the "/posvelo" topic
-    publish the custom message
+        # Subscribe to topics for target and robot state
+        rospy.Subscriber("/last_target", RobotTarget, self.robot_target_callback)     
+        rospy.Subscriber("/posvelo", Data, self.robot_state_callback)
 
-# Define the main function
-function main():
-    continuously loop:
-        get user input
-        if input is "1":
-            call change_target() function
-        elif input is "2":
-            call cancel() function
+        # Create a service named 'get_target_distance' with the TargetDistance service type
+        self.service = rospy.Service("get_target_distance", TargetDistance, self.handle_get_target_distance)
 
-# Initialize the ROS node
-if __name__ == '__main__':
-    initialize the ROS node with the name 'node_A'
-    initialize the action client for reaching_goal
-    create a subscriber for the "/odom" topic with the subscriber_callback function
-    call the main() function
-    spin the ROS node
+    # Callback function for handling RobotTarget messages
+    def robot_target_callback(self, data):
+        self.target_position.target_x = data.target_x
+        self.target_position.target_y = data.target_y
+        if not self.is_target_set:
+            self.is_target_set = True
+
+    # Callback function for handling Data messages
+    def robot_state_callback(self, data):
+        self.robot_current.position_x = data.position_x
+        self.robot_current.position_y = data.position_y
+        if len(self.robot_speed_list) < self.av_speed_window_limit:
+            self.robot_speed_list.append((data.vel_x, data.vel_y))
+        elif len(self.robot_speed_list) == self.av_speed_window_limit:
+            self.robot_speed_list.pop(0)
+            self.robot_speed_list.append((data.vel_x, data.vel_y))
+
+    # Service handler function
+    def handle_get_target_distance(self, req):
+        response = TargetDistanceResponse()
+
+        if self.is_target_set:
+            response.dist_x = self.target_position.target_x - self.robot_current.position_x
+            response.dist_y = self.target_position.target_y - self.robot_current.position_y
+            response.dist = hypot((self.target_position.target_x - self.robot_current.position_x),
+                                  (self.target_position.target_y - self.robot_current.position_y))
+            rospy.loginfo("target_x = %d target_y %d", self.target_position.target_x, self.target_position.target_y)
+        else:
+            response.dist_x = 0.0
+            response.dist_y = 0.0
+
+        response.av_speed_x = sum(x[0] for x in self.robot_speed_list) / len(self.robot_speed_list)
+        response.av_speed_y = sum(y[1] for y in self.robot_speed_list) / len(self.robot_speed_list)
+
+        return response
+
+# Main function
+def main():
+    last_target_server_node = DistanceToTargetServer('get_target_distance')
+    rospy.spin()
+
+# Entry point
+if __name__ == "__main__":
+    try:
+        main()
+    except rospy.ROSInterruptException:
+        pass
+
 
 ```
