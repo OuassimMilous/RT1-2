@@ -9,73 +9,66 @@ from ouass.msg import RobotTarget
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import PoseStamped
 
-# a function to cancel the target
+# Function to cancel the target
 def cancel():
     client.cancel_goal()
     rospy.loginfo("Goal has been canceled\n")
 
-# a function to take the robot to the target
+# Function to take the robot to the target
 def change_target():
-    # getting the input for x and y
+    # Getting the input for x and y
     x = float(input("Enter the x coordinates: "))
     y = float(input("Enter the y coordinates: "))    
-    print(f'the new target coordinates: \n x: {x} \n y: {y}')    
+    print(f'The new target coordinates: \n x: {x} \n y: {y}')    
+    # Publishing the last target for reference
     pub2 = rospy.Publisher('last_target', RobotTarget, queue_size=10)
     last_target_msg = RobotTarget()
     last_target_msg.target_x = x
     last_target_msg.target_y = y
     pub2.publish(last_target_msg)
-    # wait for the server
+    
+    # Wait for the action server
     client.wait_for_server()  
-    # initializing the goal  
+    # Initializing the goal  
     goal = PoseStamped()    
     goal.pose.position.x = x
     goal.pose.position.y = y
-    # setting the goal
+    # Setting the goal
     goal = PlanningGoal(goal) 
-    #sending the goal to the action server    
+    # Sending the goal to the action server    
     client.send_goal(goal)
-    
-    
-    
-    
-    
 
-# a function for the subscriber callback
+# Callback for the subscriber
 def subscriber_callback(data):
-    # declaring the custom message
+    # Declaring the custom message
     msg = Data()
-    # getting the current positions and velocities
+    # Getting the current positions and velocities
     msg.vel_x = data.twist.twist.linear.x 
     msg.vel_y = data.twist.twist.linear.y
     msg.position_x = data.pose.pose.position.x 
     msg.position_y = data.pose.pose.position.y 
 
-    # declaring the publisher and the topic
+    # Declaring the publisher and the topic
     pub = rospy.Publisher("/posvelo", Data, queue_size=10)
-    # publishing the msg
+    # Publishing the message
     pub.publish(msg)
 
+# Main function
 def main():
     while True:
-        # getting input
+        # Getting user input
         user_input = input("user input:  ")
-        # execute the relevant function
+        # Execute the relevant function based on user input
         if user_input == "1":
             change_target()
         elif user_input == "2":
             cancel()
 
-
+# Node initialization
 if __name__ == '__main__':
-	# node initialization
     rospy.init_node('node_A')
-    # client initialization and setting up the server
+    # Client initialization and setting up the server
     client = actionlib.SimpleActionClient('/reaching_goal', PlanningAction)
     sub = rospy.Subscriber("/odom", Odometry, subscriber_callback)
     main()
     rospy.spin()
-    
-    
-    
-
