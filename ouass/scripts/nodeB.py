@@ -1,11 +1,47 @@
 #!/usr/bin/env python
+"""
+Node_B last_target_service_node
+
+This node implements a service server to provide the last set target coordinates.
+
+.. module:: Node_B_last_target_service_node
+    :platform: Unix
+    :synopsis: Service server node for providing the last set target coordinates.
+
+.. moduleauthor:: Ouassim Milous
+
+Subscribes to:
+    /last_target
+
+Publishes to:
+    None
+
+Services:
+    /last_target_service_node
+
+Clients:
+    None
+"""
 
 import rospy
 from ouass.srv import LastTarget, LastTargetResponse
 from ouass.msg import RobotTarget
 
 class LastTargetServiceNode:
+    """
+    A class used to represent a LastTarget Service node.
+
+    This node subscribes to the /last_target topic to get the latest robot target coordinates
+    and provides a service to return these coordinates upon request.
+    """
+    
     def __init__(self):
+        """
+        Initialize the LastTargetServiceNode.
+
+        This method initializes the ROS node, sets up the subscriber and the service server, 
+        and logs that the service is ready.
+        """
         # Initialize the ROS node
         rospy.init_node('last_target_service_node')
 
@@ -21,7 +57,19 @@ class LastTargetServiceNode:
         # Log information that the service is ready
         rospy.loginfo("Service LastTarget is ready")
 
-    def handle_get_last_target(self, request):
+    def handle_get_last_target(self, request): 
+        """
+        Handle service requests and prepare the response.
+
+        This method is called whenever a request is made to the 'get_last_target' service.
+        It returns the last set target coordinates.
+
+        Args:
+            request: The service request.
+
+        Returns:
+            LastTargetResponse: The response containing the last target coordinates.
+        """
         # Handle service requests and prepare the response
         response = LastTargetResponse()
 
@@ -40,6 +88,15 @@ class LastTargetServiceNode:
         return response
 
     def robot_target_callback(self, data):
+        """
+        Callback function to update last_target when a new RobotTarget message is received.
+
+        This method updates the internal last_target variable with the coordinates from the
+        received RobotTarget message.
+
+        Args:
+            data (RobotTarget): The RobotTarget message containing the target coordinates.
+        """
         # Callback function to update last_target when a new RobotTarget message is received
         self.last_target = (data.target_x, data.target_y)
 

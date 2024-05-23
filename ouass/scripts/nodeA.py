@@ -1,4 +1,29 @@
 #!/usr/bin/env python
+"""
+Node_A UI
+
+This node waits for user input to either change the robot's target or cancel the current action.
+
+.. module:: Node_A_UI
+    :platform: Unix
+    :synopsis: User interface node for controlling the robot's target.
+
+.. moduleauthor:: Ouassim Milous
+
+Subscribes to:
+    /odom
+
+Publishes to:
+    /posvelo
+    /last_target
+
+Client:
+    /reaching_goal
+
+Services:
+    None
+"""
+
 from __future__ import print_function
 import sys    
 import rospy
@@ -9,13 +34,21 @@ from ouass.msg import RobotTarget
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import PoseStamped
 
-# Function to cancel the target
 def cancel():
+    """
+    Cancel the current goal.
+
+    This function cancels the active goal.
+    """
     client.cancel_goal()
     rospy.loginfo("Goal has been canceled\n")
 
-# Function to take the robot to the target
 def change_target():
+    """
+    Change the robot's target.
+
+    This function reads coordinates from the user and sets them as the new target.
+    """
     # Getting the input for x and y
     x = float(input("Enter the x coordinates: "))
     y = float(input("Enter the y coordinates: "))    
@@ -39,8 +72,16 @@ def change_target():
     # Sending the goal to the action server    
     client.send_goal(goal)
 
-# Callback for the subscriber
 def subscriber_callback(data):
+    """
+    Callback for the subscriber.
+
+    This function extracts the X and Y data from the odometry message and republishes them reformatted.
+
+    Args:
+        data (Odometry): The odometry message containing both X and Y axis position and velocity.
+    """
+
     # Declaring the custom message
     msg = Data()
     # Getting the current positions and velocities
@@ -51,12 +92,20 @@ def subscriber_callback(data):
 
     # Declaring the publisher and the topic
     pub = rospy.Publisher("/posvelo", Data, queue_size=10)
+    """ instance of the Publisher that publishes the refromatted X and Y axis position and velocity.
+    """
     pub2 = rospy.Publisher('last_target', RobotTarget, queue_size=10)
+    """ instance of the Publisher that publishes the current target.
+    """
     # Publishing the message
     pub.publish(msg)
 
-# Main function
 def main():
+    """
+    Main function.
+
+    This function contains the main loop for the system, listening to user input to initiate changing or canceling the target.
+    """
     while True:
         # Getting user input
         user_input = input("please enter 1 to change the target or 2 to cancel the current one:  ")
@@ -68,7 +117,7 @@ def main():
 
 # Node initialization
 if __name__ == '__main__':
-    rospy.init_node('node_A')
+    rospy.init_node('UI')
     # Client initialization and setting up the server
     client = actionlib.SimpleActionClient('/reaching_goal', PlanningAction)
     sub = rospy.Subscriber("/odom", Odometry, subscriber_callback)
